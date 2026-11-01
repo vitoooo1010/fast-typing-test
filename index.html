@@ -1,127 +1,23 @@
-getElementById('high-score');
-
-    // Load High Score
-    let highScore = localStorage.getItem('typing_high_score') || 0;
-    highScoreDisplay.innerText = highScore + " WPM";
-
-    function initText() {
-        textDisplay.innerHTML = '';
-        targetText.split('').forEach(char => {
-            const span = document.createElement('span');
-            span.innerText = char;
-            span.className = 'transition-colors duration-100';
-            textDisplay.appendChild(span);
-        });
-    }
-
-    function changeMode(mode) {
-        currentMode = mode;
-        targetText = texts[mode];
-        
-        // Update buttons style
-        ['easy', 'medium', 'hard'].forEach(m => {
-            const btn = document.getElementById(`btn-${m}`);
-            if(m === mode) {
-                btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition";
-            } else {
-                btn.className = "px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition";
-            }
-        });
-
-        resetTest();
-    }
-
-    function resetTest() {
-        clearInterval(timerInterval);
-        isStarted = false;
-        timeLeft = 60;
-        correctChars = 0;
-        totalTyped = 0;
-        timerDisplay.innerText = timeLeft;
-        wpmDisplay.innerText = '0';
-        accuracyDisplay.innerText = '100';
-        hiddenInput.value = '';
-        initText();
-    }
-
-    // Focus input when clicking anywhere on the box
-    textDisplay.parentElement.addEventListener('click', () => {
-        hiddenInput.focus();
-    });
-
-    hiddenInput.addEventListener('input', (e) => {
-        if (!isStarted) {
-            isStarted = true;
-            startTimer();
-        }
-
-        const inputVal = hiddenInput.value;
-        const spanElements = textDisplay.querySelectorAll('span');
-
-        totalTyped = inputVal.length;
-        correctChars = 0;
-
-        spanElements.forEach((span, index) => {
-            const char = inputVal[index];
-
-            if (char == null) {
-                span.className = 'text-slate-300';
-            } else if (char === span.innerText) {
-                span.className = 'text-emerald-400 bg-emerald-900/30';
-                correctChars++;
-            } else {
-                span.className = 'text-rose-400 bg-rose-900/30 underline';
-            }
-        });
-
-        // Calculate Accuracy
-        if (totalTyped > 0) {
-            let acc = Math.floor((correctChars / totalTyped) * 100);
-            accuracyDisplay.innerText = acc;
-        }
-
-        // Check if finished text
-        if (inputVal.length >= targetText.length) {
-            clearInterval(timerInterval);
-            isStarted = false;
-            calculateWPM();
-        }
-    });
-
-    function startTimer() {
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            timerDisplay.innerText = timeLeft;
-
-            calculateWPM();
-
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                isStarted = false;
-                hiddenInput.blur();
-                alert('کات تەواو بوو! ئەنجامەکەت تۆمار کرا.');
-            }
-        }, 1000);
-    }
-
-    function calculateWPM() {
-        const timeElapsed = 60 - timeLeft;
-        if (timeElapsed > 0) {
-            // WPM formula: (characters / 5) / minutes
-            const words = correctChars / 5;
-            const minutes = timeElapsed / 60;
-            const wpm = Math.round(words / minutes);
-            wpmDisplay.innerText = wpm >= 0 ? wpm : 0;
-
-            // Save High Score
-            if (wpm > highScore) {
-                highScore = wpm;
-                localStorage.setItem('typing_high_score', highScore);
-                highScoreDisplay.innerText = highScore + " WPM";
-            }
-        }
-    }
-
-    // Initial setup on load
-    initText();
-</script>
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ڕاهێنانی تایپکردن و سپێڵینگ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-between p-4">
+    <header class="w-full max-w-4xl text-center py-6">
+        <h1 class="text-3xl font-bold text-emerald-400 mb-2">ڕاهێنانی تایپکردن و سپێڵینگی ئینگلیزی</h1>
+        <p class="text-slate-400 text-sm">بەخێر بێیت بۆ وێبساپتەکەت</p>
+    </header>
+    <main class="w-full max-w-4xl bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl flex flex-col gap-6">
+        <div id="typing-box" class="bg-slate-900 p-6 rounded-xl border border-slate-700 min-h-[120px] flex items-center justify-center cursor-pointer">
+            <div id="text-display" class="text-xl text-slate-300 tracking-wide leading-relaxed select-none">لێرە دەست بە ڕاهێنان بکە...</div>
+        </div>
+    </main>
+    <footer class="text-slate-500 text-xs py-4">
+        تایپکردنی خێرا - هەموو مافەکان پارێزراون
+    </footer>
+</body>
+</html>
