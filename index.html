@@ -1,0 +1,127 @@
+getElementById('high-score');
+
+    // Load High Score
+    let highScore = localStorage.getItem('typing_high_score') || 0;
+    highScoreDisplay.innerText = highScore + " WPM";
+
+    function initText() {
+        textDisplay.innerHTML = '';
+        targetText.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.innerText = char;
+            span.className = 'transition-colors duration-100';
+            textDisplay.appendChild(span);
+        });
+    }
+
+    function changeMode(mode) {
+        currentMode = mode;
+        targetText = texts[mode];
+        
+        // Update buttons style
+        ['easy', 'medium', 'hard'].forEach(m => {
+            const btn = document.getElementById(`btn-${m}`);
+            if(m === mode) {
+                btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition";
+            } else {
+                btn.className = "px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition";
+            }
+        });
+
+        resetTest();
+    }
+
+    function resetTest() {
+        clearInterval(timerInterval);
+        isStarted = false;
+        timeLeft = 60;
+        correctChars = 0;
+        totalTyped = 0;
+        timerDisplay.innerText = timeLeft;
+        wpmDisplay.innerText = '0';
+        accuracyDisplay.innerText = '100';
+        hiddenInput.value = '';
+        initText();
+    }
+
+    // Focus input when clicking anywhere on the box
+    textDisplay.parentElement.addEventListener('click', () => {
+        hiddenInput.focus();
+    });
+
+    hiddenInput.addEventListener('input', (e) => {
+        if (!isStarted) {
+            isStarted = true;
+            startTimer();
+        }
+
+        const inputVal = hiddenInput.value;
+        const spanElements = textDisplay.querySelectorAll('span');
+
+        totalTyped = inputVal.length;
+        correctChars = 0;
+
+        spanElements.forEach((span, index) => {
+            const char = inputVal[index];
+
+            if (char == null) {
+                span.className = 'text-slate-300';
+            } else if (char === span.innerText) {
+                span.className = 'text-emerald-400 bg-emerald-900/30';
+                correctChars++;
+            } else {
+                span.className = 'text-rose-400 bg-rose-900/30 underline';
+            }
+        });
+
+        // Calculate Accuracy
+        if (totalTyped > 0) {
+            let acc = Math.floor((correctChars / totalTyped) * 100);
+            accuracyDisplay.innerText = acc;
+        }
+
+        // Check if finished text
+        if (inputVal.length >= targetText.length) {
+            clearInterval(timerInterval);
+            isStarted = false;
+            calculateWPM();
+        }
+    });
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.innerText = timeLeft;
+
+            calculateWPM();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                isStarted = false;
+                hiddenInput.blur();
+                alert('کات تەواو بوو! ئەنجامەکەت تۆمار کرا.');
+            }
+        }, 1000);
+    }
+
+    function calculateWPM() {
+        const timeElapsed = 60 - timeLeft;
+        if (timeElapsed > 0) {
+            // WPM formula: (characters / 5) / minutes
+            const words = correctChars / 5;
+            const minutes = timeElapsed / 60;
+            const wpm = Math.round(words / minutes);
+            wpmDisplay.innerText = wpm >= 0 ? wpm : 0;
+
+            // Save High Score
+            if (wpm > highScore) {
+                highScore = wpm;
+                localStorage.setItem('typing_high_score', highScore);
+                highScoreDisplay.innerText = highScore + " WPM";
+            }
+        }
+    }
+
+    // Initial setup on load
+    initText();
+</script>
